@@ -1,0 +1,108 @@
+
+% application image
+
+clear all;
+close all;
+%%
+% Paramètres
+
+%taille de l'image
+Lx=1024;
+Ly=712;
+
+% Génération des images
+[xx,yy] = meshgrid(1:Lx,1:Ly);
+nbr=5000;%nombre d'etoiles
+img1=zeros(Lx,Ly);
+img2=zeros(Lx,Ly);
+i=1;
+R = sqrt(xx.^2+yy.^2);
+X0=[];
+Y0=[];
+X1=[];
+Y1=[];
+xa=[];
+ya=[];
+xb=[];
+yb=[];
+a=[];
+
+Lambda=10; % longueur d'onde
+K=2*pi()/Lambda; %controle de longueur d'onde de la fonction de bessel
+%% création de l'image de base
+while i<=nbr
+
+X0(1,i) = randi([1,Lx]);
+Y0(1,i) = randi([1,Ly]);
+
+I0= randi([10,50]);
+
+Rdef =sqrt((xx-X0(i)).^2+(yy-Y0(i)).^2);
+
+f_ref = I0*besselj(0,K*Rdef).^8;
+
+% mouchetage complexe
+img1=img1+f_ref';
+i=i+1;
+end
+%% deplacement par fct bessels des points de l'image
+%
+% X1 = randi([1,Lx]);
+% Y1 = randi([1,Ly]);
+%
+% Rdepl =sqrt((X0-X1).^2+(Y0-Y1).^2);
+%
+% r = I0*besselj(0,K1*Rdepl).^8;
+%
+% i=1;
+% while i<=nbr
+% a(i)=atan((X0(i)-X1)/(Y0(i)-Y1));
+% i=i+1;
+% end
+%
+% [xa,ya]=pol2cart(a,r);
+%
+%  for i=1:nbr % placement des fonction deplacées
+%  xb(i)=X0(i)+xa(i);
+%  yb(i)=Y0(i)+ya(i);
+%
+%  Rdefb = sqrt((xx-xb(i)).^2+(yy-yb(i)).^2);
+%
+%  f_refb =I0* besselj(0,K*Rdefb).^8;
+%
+%  img2=img2+f_refb';
+%  end
+%% deplacement par sinus ou sinus cardinal des points sur image de base
+
+Lambda1=100; % longueur d'onde sinus
+Amp=10;   %Amplitude du dÃ©placement + Amp grand + deplacement selon X grand
+pas=Ly-1; % Nb de pas
+min=0;
+max=Lx;
+amor= 5e-3; % facteur ammortissement de la fonction sinc
+k=min:(max-min)/pas:max;
+dep=Amp*sin(2*pi*5*k/Lambda1); %sinus
+%dep=Amp*sinc(amor*2*pi*5*k/Lambda1); % sinus cardinal
+
+v=0;
+k=1;
+ for k=1:nbr % placement des fonction deplacées
+ xb(k)=X0(k)+dep(1,Y0(k));
+ xb(k)=floor(xb(k));
+ yb(k)=Y0(k);
+
+ Rdefb = sqrt((xx-xb(k)).^2+(yy-yb(k)).^2);
+ f_refb =I0* besselj(0,K*Rdefb).^8;
+
+ img2=img2+f_refb';
+ v=v+1 %compteur pour verif
+ end
+
+%% affichage des images et export image
+figure(1)
+imshow(real(img1)), axis equal
+imwrite(real(img1),'image_non_deforme_sin1.jpg')
+
+figure(2)
+imshow(real(img2)), axis equal
+imwrite(real(img2),'image_deforme_sin1.jpg')
